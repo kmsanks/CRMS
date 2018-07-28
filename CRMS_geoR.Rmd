@@ -1,0 +1,77 @@
+---
+title: "CRMS Analysis using geoR"
+author: "Kelly Sanks"
+date: "April 8, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#CRMS Analysis using geoR
+
+This analysis is created following the interpolation tutorial using geoR found at: http://www.leg.ufpr.br/geoR/geoRdoc/vignette/geoRintro/geoRintrose1.html#tailgeoRintrose1.html
+The 
+
+```{r load, include=FALSE}
+#Clear Workspace
+rm(list=ls())
+
+#Set Working Directory
+setwd('C:/Users/kmsanks/Documents/Research/Kriging/UKrig')
+
+#Load all necessary libraries
+library(geoR) 
+```
+
+##Load Data
+```{r shapefile, include=TRUE}
+#Read Shape Polygon
+coast <- readOGR("C:/Users/kmsanks/Documents/Research/Kriging/UKrig","Vegetation")
+#Project into UTM Zone 15N
+LC <- spTransform(coast, CRS("+proj=utm +north +zone=15 +datum=WGS84")) 
+
+#Read in the Spatial Data
+Delta_Data <- read.csv(file="CRMS_Data.csv", header=TRUE, sep=",")
+#Summary of data
+head(Delta_Data)
+
+#Convert this basic data frame into a spatial points data frame
+coordinates(Delta_Data) = ~XCoord + YCoord #UTM vs. lat/long which are in degrees N
+
+#Plot the CRMS points on the land polygon
+plot(LC, main="273 CRMS Stations on Coast Polygon")
+plot(Delta_Data, pch=20, add=TRUE)
+```
+
+```{r}
+#Convert data to data frame
+LA.data <- as.data.frame(Delta_Data)
+#Create a geodata frame for bulk density, use geoR to convert data into geodata
+bulkd.geodata <- as.geodata(LA.data, coords.col=7:8, data.col=5)
+coordinates(LA.data) <- ~XCoord + YCoord
+summary(LA.data)
+summary(bulkd.geodata)
+plot(bulkd.geodata)
+```
+
+```{r pointsgeodata}
+par(mfrow=c(2,2))
+points(bulkd.geodata,xlab="Coord X", ylab="Coord Y")
+points(bulkd.geodata, xlab="Coord X", ylab="Coord Y", pt.divide = "rank.prop")
+points(bulkd.geodata, xlab = "Coord X", ylab = "Coord Y", cex.max = 1.7, col = gray(seq(1, 0.1, l = 100)), pt.divide = "equal")
+points(bulkd.geodata, pt.divide = "quintile", xlab="Cood X", ylab = "Coord Y")
+```
+```
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
